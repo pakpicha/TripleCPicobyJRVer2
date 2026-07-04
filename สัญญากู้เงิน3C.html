@@ -153,8 +153,13 @@ body{
   /* ซ่อนทุกอย่างยกเว้น preview */
   body>*{display:none!important}
   #sec-preview{display:block!important}
+  body.printing-voucher #sec-preview{display:none!important}
+  body.printing-voucher #gv-preview-loan{display:block!important}
+  body.printing-schedule #sec-preview{display:none!important}
+  body.printing-schedule #gv-preview-schedule{display:block!important}
   .pbtns,.back-home,.schedule-toolbar,.font-ctrl{display:none!important}
   .doc{min-height:auto!important;overflow:visible!important}
+  .doc.editing{outline:none!important}
   .doc-sigs{page-break-inside:avoid!important}
   .doc-clause{page-break-inside:avoid!important}
   /* doc wrapper */
@@ -240,6 +245,18 @@ body{
   font-size:19px;font-weight:700;letter-spacing:-.2px;margin-bottom:4px;line-height:1.2;
 }
 .ui-head p{font-size:13px;opacity:.78;font-weight:300}
+.ui-head-reset{
+  padding:9px 14px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.35);
+  color:#fffdf7;
+  border-radius:10px;
+  font-size:13px;font-weight:600;
+  font-family:inherit;cursor:pointer;
+  transition:transform .15s,background .15s;
+  white-space:nowrap;
+}
+.ui-head-reset:active{transform:translateY(1px);background:rgba(255,255,255,.26)}
 
 /* Item entry block (.ai = ผู้กู้/ค้ำ/หลักประกัน) */
 .ai{
@@ -323,7 +340,7 @@ body{
 
 /* Checkbox row (.chips) */
 .chips{margin-bottom:10px}
-.chips label{
+.chips label, label.chips{
   display:inline-flex;align-items:center;gap:8px;
   padding:9px 14px;
   background:var(--field-bg);
@@ -331,14 +348,20 @@ body{
   border-radius:10px;
   font-size:14px;font-weight:500;
   cursor:pointer;color:var(--ink);
-  transition:background .15s,border-color .15s;
+  transition:background .15s,border-color .15s,color .15s,box-shadow .15s;
 }
-.chips label:has(input:checked){
-  background:var(--primary-soft);
+.chips label:has(input:checked), label.chips:has(input:checked),
+.chips label.is-checked, label.chips.is-checked{
+  background:var(--primary);
   border-color:var(--primary);
-  color:var(--primary);font-weight:600;
+  color:#fff;font-weight:700;
+  box-shadow:0 2px 8px rgba(15,46,33,.25);
 }
-.chips input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary)}
+.chips label:has(input:checked)::before, label.chips:has(input:checked)::before,
+.chips label.is-checked::before, label.chips.is-checked::before{
+  content:"✓ ";font-weight:900;font-size:15px;
+}
+.chips input[type="checkbox"], label.chips input[type="checkbox"]{width:16px;height:16px;accent-color:#fff}
 
 /* Preview / button row */
 .pbtns{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
@@ -529,11 +552,17 @@ body{
   text-indent:1cm;
   margin-bottom:2pt;
   text-align:justify;
+  word-break:keep-all;
+  line-break:strict;
+  hyphens:none;
 }
 .doc-clause{
   text-indent:1cm;
   margin-bottom:2pt;
   text-align:justify;
+  word-break:keep-all;
+  line-break:strict;
+  hyphens:none;
 }
 .doc-clause b{font-weight:bold;font-size:1.25em}
 .doc-center{
@@ -542,6 +571,8 @@ body{
 }
 
 .doc .nowrap{white-space:nowrap}
+.doc.editing{outline:2px dashed var(--accent);outline-offset:4px;cursor:text}
+.doc.editing:focus{outline-color:var(--primary)}
 
 /* Signatures (2-column grid at bottom) */
 .doc-sigs{
@@ -641,9 +672,12 @@ body{
 
 <div class="section active" id="sec-form">
 <div class="ui">
-  <div class="ui-head">
-    <h1>📄 หนังสือสัญญากู้เงินตามกฎหมาย</h1>
-    <p>บริษัท ทริปเปิลซี พิโก จำกัด</p>
+  <div class="ui-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div>
+      <h1>📄 หนังสือสัญญากู้เงินตามกฎหมาย</h1>
+      <p>บริษัท ทริปเปิลซี พิโก จำกัด</p>
+    </div>
+    <button class="ui-head-reset" onclick="resetAll()" style="flex:0 0 auto">🔄 ล้างข้อมูล</button>
   </div>
 
   <div class="card">
@@ -690,14 +724,8 @@ body{
     </div>
     <div class="fg"><label>ผู้ให้กู้</label>
       <select id="lender_dir" onchange="onLenderChange()">
-        <option value="">— เลือกกรรมการผู้ลงนาม —</option>
-        <!--3Cfuture <option value="บริษัท ทริปเปิลซี พิโก จำกัด โดย นายกันตพัฒน์ จรัสบวรพันธ์">นายกันตพัฒน์ จรัสบวรพันธ์</option> -->
-        <!--3Cfuture <option value="บริษัท ทริปเปิลซี พิโก จำกัด โดย นางชญาน์นัทช์ จรัสบวรพันธ์">นางชญาน์นัทช์ จรัสบวรพันธ์</option> -->
-        <option value="บริษัท ทริปเปิลซี พิโก จำกัด โดย นายชุณนเกียรติ จรัสบวรพันธ์">นายชุณนเกียรติ จรัสบวรพันธ์</option>
-        <!--3Cfuture <option value="บริษัท ทริปเปิลซี พิโก จำกัด โดย นายฐานวัฒน์ จรัสบวรพันธ์">นายฐานวัฒน์ จรัสบวรพันธ์</option> -->
-        <option value="บริษัท ทริปเปิลซี พิโก จำกัด โดย นางสาวภัคฐ์พิชา จรัสบวรพันธ์">นางสาวภัคฐ์พิชา จรัสบวรพันธ์</option>
-      </select>
-      <div class="hint">เลือกกรรมการผู้ลงนาม ระบบจะเติม "สถานที่ทำสัญญา" (ที่อยู่บริษัท) ให้อัตโนมัติ</div>
+        <option value="">— เลือกผู้ให้กู้ —</option><option>บริษัท ทริปเปิลซี พิโก จำกัด โดย นายชุณนเกียรติ จรัสบวรพันธ์</option><option>บริษัท ทริปเปิลซี พิโก จำกัด โดย นางสาวภัคฐ์พิชา จรัสบวรพันธ์</option><!--3Cfuture <option>บริษัท ทริปเปิลซี พิโก จำกัด โดย นางชญาน์นัทช์ จรัสบวรพันธ์</option><option>บริษัท ทริปเปิลซี พิโก จำกัด โดย นายกันตพัฒน์ จรัสบวรพันธ์</option> --></select>
+      <div class="hint">เลือกผู้ให้กู้แล้วระบบจะเติม "สถานที่ทำสัญญา" ให้อัตโนมัติ</div>
     </div>
   </div>
 
@@ -710,7 +738,7 @@ body{
   <div class="card">
     <div class="ct"><span class="lhs"><span class="n">3</span> ผู้ค้ำประกัน</span></div>
     <div class="chips"><label><input type="checkbox" id="has_guarantor" onchange="toggleGuarantor()"> มีผู้ค้ำประกัน</label></div>
-    <div id="guarantor_wrap" style="display:none">
+    <div id="guarantor_wrap">
       <div id="guarantors"></div>
       <button class="add-btn" onclick="addGuarantor()">+ เพิ่มผู้ค้ำประกัน</button>
     </div>
@@ -728,7 +756,7 @@ body{
   <div class="card">
     <div class="ct"><span class="lhs"><span class="n">5</span> หลักประกัน</span></div>
     <div class="chips"><label><input type="checkbox" id="has_collateral" onchange="toggleCollateral()"> มีหลักประกัน</label></div>
-    <div id="collateral_wrap" style="display:none">
+    <div id="collateral_wrap">
       <div id="collaterals"></div>
       <button class="add-btn" onclick="addCollateral()">+ เพิ่มหลักทรัพย์</button>
     </div>
@@ -763,6 +791,25 @@ body{
     </div>
   </div>
 
+  <div class="card">
+    <div class="ct"><span class="lhs"><span class="n">8</span> ใบสำคัญจ่าย (ออกพร้อมสัญญา)</span></div>
+    <div class="fg" style="max-width:200px"><label>เลขที่บิลของวัน</label><input type="text" id="gv_bill_seq" value="01" placeholder="01"></div>
+    <label style="font-weight:600;font-size:13px;color:var(--primary);margin-top:6px;display:block">รายการจ่าย (แบ่งจ่ายหลายวิธีได้)</label>
+    <div id="loan_pay_rows"></div>
+    <button type="button" class="add-btn" onclick="addLoanPay()" style="margin-top:6px">+ เพิ่มวิธีจ่าย</button>
+    <div class="hint">ผลรวมจะถูกแสดงในใบสำคัญจ่าย — ดึงผู้ให้กู้และผู้กู้จากสัญญาด้านบนอัตโนมัติ</div>
+  </div>
+
+  <style>
+    .loan-pay-row{border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;background:rgba(0,0,0,0.02)}
+    .loan-pay-row .lp-head{display:flex;gap:8px;margin-bottom:6px;align-items:center}
+    .loan-pay-row .lp-head select{flex:1;padding:8px 11px;font-size:14px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit}
+    .loan-pay-row .lp-head input{width:140px;padding:8px 11px;font-size:14px;border:1px solid var(--line);border-radius:8px;text-align:right;font-family:inherit}
+    .loan-pay-row .lp-head button{background:#fee;color:#c00;border:1px solid #fcc;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+    .loan-pay-row .lp-detail{width:100%;padding:8px 11px;font-size:14px;border:1px solid var(--line);border-radius:8px;font-family:inherit;background:#fff}
+    .loan-pay-row .lp-detail.hidden{display:none}
+  </style>
+
   <button class="gen-btn" onclick="generateContract()">⚡ สร้างเอกสารสัญญา</button>
 </div>
 </div>
@@ -771,7 +818,10 @@ body{
   <div class="pbtns">
     <button class="pbk" onclick="backToForm()">← แก้ไข</button>
     <button class="pbk" onclick="resetAll()">🔄 ล้าง</button>
+    <button class="pbk" id="editTextBtn" onclick="toggleEditText()">✏️ แก้คำ</button>
+    <button class="pbk" onclick="exportWord()">📄 Word</button>
     <button class="ppr" onclick="printContract()">🖨️ พิมพ์ / PDF</button>
+    <button class="ppr" onclick="printVoucher()" style="background:linear-gradient(135deg,#8b4513,#a0552a)">🧾 พิมพ์ใบสำคัญจ่าย</button>
   </div>
   <div class="font-ctrl">
     <button onclick="adjustFont(-1)" title="ลดขนาด">A−</button>
@@ -780,7 +830,7 @@ body{
     <button onclick="adjustFont(0)" title="คืนค่าอัตโนมัติ" style="margin-left:6px;font-size:11px">⟲ อัตโนมัติ</button>
   </div>
   <div class="doc-wrap">
-    <div class="doc" id="doc-preview">
+    <div class="doc" id="doc-preview" lang="th">
       <div class="placeholder">กรอกข้อมูลแล้วกด <strong>"สร้างเอกสารสัญญา"</strong></div>
     </div>
   </div>
@@ -935,7 +985,7 @@ function _tdpBuildYM(did){
   var ymDiv=drop.querySelector('.tdp-ym');
   var ysel='<select onchange="tdpYMChange(\''+did+'\',\'y\',this.value)">';
   var curBE=s.cur.y+543;
-  for(var be=2540;be<=2590;be++){ysel+='<option value="'+(be-543)+'"'+(be===curBE?' selected':'')+'>'+be+'</option>';}
+  for(var be=2440;be<=2600;be++){ysel+='<option value="'+(be-543)+'"'+(be===curBE?' selected':'')+'>'+be+'</option>';}
   ysel+='</select>';
   var msel='<select onchange="tdpYMChange(\''+did+'\',\'m\',this.value)">';
   for(var mi=0;mi<12;mi++){msel+='<option value="'+mi+'"'+(mi===s.cur.m?' selected':'')+'>'+THMONTHS_F[mi]+'</option>';}
@@ -983,9 +1033,17 @@ function tdpOpen(did){
     var p=hid.value.split('-');
     if(p.length===3){wrap._tdp.cur.y=parseInt(p[0]);wrap._tdp.cur.m=parseInt(p[1])-1;wrap._tdp.sel=hid.value;_tdpRender(did);}
   }
+  var card=wrap&&wrap.closest('.card');
+  if(card)card.style.zIndex=50;
 }
 function tdpClose(){
-  if(_tdpOpen){var d=document.getElementById('tdpd_'+_tdpOpen);if(d)d.classList.remove('open');_tdpOpen=null;}
+  if(_tdpOpen){
+    var d=document.getElementById('tdpd_'+_tdpOpen);if(d)d.classList.remove('open');
+    var w=document.getElementById('tdpw_'+_tdpOpen);
+    var card=w&&w.closest('.card');
+    if(card)card.style.zIndex='';
+    _tdpOpen=null;
+  }
 }
 function tdpNav(did,delta,e){
   if(e)e.stopPropagation();
@@ -1096,6 +1154,19 @@ function _tdpWireEvents(did){
 
 const DIRS=['นาย ชุณนเกียรติ จรัสบวรพันธ์','นาง ชญาน์นัทช์ จรัสบวรพันธ์','นาย กันตพัฒน์ จรัสบวรพันธ์','นางสาว ภัคฐ์พิชา จรัสบวรพันธ์'];
 let bC=0,gC=0,cC=0;
+
+// ─── แสดงสถานะติ๊กถูกของ .chips ให้ชัดเจนเสมอ (เผื่อเบราว์เซอร์ไม่รองรับ :has()) ───
+function syncChipCheckbox(cb){
+  var lbl=cb.closest('label');
+  if(!lbl) return;
+  if(cb.checked) lbl.classList.add('is-checked'); else lbl.classList.remove('is-checked');
+}
+function syncAllChips(root){
+  (root||document).querySelectorAll('.chips input[type="checkbox"]').forEach(syncChipCheckbox);
+}
+document.addEventListener('change',function(e){
+  if(e.target && e.target.matches && e.target.matches('.chips input[type="checkbox"]')) syncChipCheckbox(e.target);
+},true);
 
 function gv(id){const e=document.getElementById(id);return e?(e.value||'').trim():''}
 function gc(id){const e=document.getElementById(id);return e?e.checked:false}
@@ -1215,11 +1286,25 @@ function personBlock(prefix,i){
 
 // === ข้อมูลผู้ให้กู้ 5 คน (สำหรับ auto-fill สถานที่ทำสัญญา) ===
 var LENDER_PEOPLE={
-  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นายกันตพัฒน์ จรัสบวรพันธ์":   "247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา",
-  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นางชญาน์นัทช์ จรัสบวรพันธ์":  "247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา",
-  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นายชุณนเกียรติ จรัสบวรพันธ์":  "247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา",
-  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นายฐานวัฒน์ จรัสบวรพันธ์":    "247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา",
+  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นายชุณนเกียรติ จรัสบวรพันธ์": "247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา",
   "บริษัท ทริปเปิลซี พิโก จำกัด โดย นางสาวภัคฐ์พิชา จรัสบวรพันธ์": "247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา"
+  /*3Cfuture ,"บริษัท ทริปเปิลซี พิโก จำกัด โดย นางชญาน์นัทช์ จรัสบวรพันธ์":"247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา","บริษัท ทริปเปิลซี พิโก จำกัด โดย นายกันตพัฒน์ จรัสบวรพันธ์":"247/1 หมู่ที่ 9 ตำบลท่าเยี่ยม อำเภอโชคชัย จังหวัดนครราชสีมา" */
+};
+
+// ข้อมูลเลขประจำตัวประชาชนของผู้ให้กู้สำหรับใบสำคัญจ่าย
+var LENDER_IDS={
+  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นายชุณนเกียรติ จรัสบวรพันธ์": "0-3055-61006-24-7",
+  "บริษัท ทริปเปิลซี พิโก จำกัด โดย นางสาวภัคฐ์พิชา จรัสบวรพันธ์": "0-3055-61006-24-7"
+  /*3Cfuture ,"บริษัท ทริปเปิลซี พิโก จำกัด โดย นางชญาน์นัทช์ จรัสบวรพันธ์":"0-3055-61006-24-7","บริษัท ทริปเปิลซี พิโก จำกัด โดย นายกันตพัฒน์ จรัสบวรพันธ์":"0-3055-61006-24-7" */
+};
+
+var PAY_TYPE_LABELS={
+  "cash":"เงินสด",
+  "draft":"ดราฟท์",
+  "transfer":"เงินโอน",
+  "pn":"ตั๋วสัญญาใช้เงิน",
+  "bankdraft":"ดราฟต์ธนาคาร",
+  "check":"เช็ค"
 };
 
 function onLenderChange(){
@@ -1242,6 +1327,7 @@ function addGuarantor(){
   var idx=gC;
   document.getElementById('guarantors').appendChild(elN(personBlock('g',idx)));
   wirePerson('g',idx);
+  setChip('has_guarantor',true);
 }
 
 function wirePerson(p,i){
@@ -1277,15 +1363,34 @@ function calcAgeFromISO(iso){
   return age>0?String(age):'';
 }
 
-function removePerson(p,i){const n=document.getElementById(`${p}-${i}`);if(n)n.remove()}
+function removePerson(p,i){
+  const n=document.getElementById(`${p}-${i}`);
+  if(n)n.remove();
+  if(p==='g' && !document.querySelector('[id^="g-"]')) setChip('has_guarantor',false);
+}
+
+function setChip(id,checked){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.checked=checked;
+  syncChipCheckbox(el);
+}
 
 function toggleGuarantor(){
-  document.getElementById('guarantor_wrap').style.display=gc('has_guarantor')?'':'none';
-  if(gc('has_guarantor') && gC===0)addGuarantor();
+  if(gc('has_guarantor')){
+    if(gC===0)addGuarantor();
+  }else{
+    document.getElementById('guarantors').innerHTML='';
+    gC=0;
+  }
 }
 function toggleCollateral(){
-  document.getElementById('collateral_wrap').style.display=gc('has_collateral')?'':'none';
-  if(gc('has_collateral') && cC===0)addCollateral();
+  if(gc('has_collateral')){
+    if(cC===0)addCollateral();
+  }else{
+    document.getElementById('collaterals').innerHTML='';
+    cC=0;
+  }
 }
 
 function formatID(input){
@@ -1334,7 +1439,7 @@ function collateralFields(i,type){
       <div><label>จังหวัด</label><input type="text" id="c${i}_province" value="นครราชสีมา"></div>
       <div><label>อำเภอ</label><input type="text" id="c${i}_amphoe"></div>
       <div class="fw"><label>ตำบล</label><input type="text" id="c${i}_tambon"></div>
-      <div class="fw"><div class="chips" style="margin:0"><label><input type="checkbox" id="c${i}_building" checked> พร้อมสิ่งปลูกสร้างที่มีอยู่และเกิดขึ้นในอนาคต</label></div></div>
+      <div class="fw"><label class="chips is-checked" style="margin:0"><input type="checkbox" id="c${i}_building" checked> พร้อมสิ่งปลูกสร้างที่มีอยู่และเกิดขึ้นในอนาคต</label></div>
     </div>`;
   }
   if(type==='car'||type==='motorcycle'){
@@ -1369,6 +1474,7 @@ function addCollateral(){
   cC++;
   document.getElementById('collaterals').appendChild(elN(collateralBlock(cC)));
   setTimeout(()=>wireColAddr(cC),20);
+  setChip('has_collateral',true);
 }
 function wireColAddr(i){
   try{
@@ -1378,7 +1484,11 @@ function wireColAddr(i){
     }
   }catch(e){}
 }
-function removeCollateral(i){const n=document.getElementById(`c-${i}`);if(n)n.remove()}
+function removeCollateral(i){
+  const n=document.getElementById(`c-${i}`);
+  if(n)n.remove();
+  if(!document.querySelector('[id^="c-"]')) setChip('has_collateral',false);
+}
 function changeColType(i,t){
   document.getElementById(`c${i}_fields`).innerHTML=collateralFields(i,t);
   setTimeout(()=>wireColAddr(i),20);
@@ -1437,15 +1547,18 @@ function fmtDateParts(s){
 function autoFillDue(){
   const cd=getTDPVal('contract_date');
   const dueInp=document.getElementById('tdpi_due_date');
-  if(cd && dueInp && !dueInp.value){
+  if(cd && dueInp){
     const o=parseBEDate(cd);
     if(o){
       const dd=String(o.d).padStart(2,'0'),mm=String(o.m).padStart(2,'0');
       const newDate=`${dd}/${mm}/${o.y+1}`;
       dueInp.value=newDate;
+      dueInp.classList.remove('er');dueInp.classList.add('ok');
       // ตั้ง hidden ISO ด้วย
       const hid=document.getElementById('due_date');
       if(hid)hid.value=`${o.y+1-543}-${mm}-${dd}`;
+      // sync picker state ของ due_date ด้วย ไม่งั้นถ้าเปิดปฏิทินจะยังโชว์เดือน/ปีเดิม
+      try{ tdpSetValue('due_date',`${o.y+1-543}-${mm}-${dd}`); }catch(e){}
     }
   }
 }
@@ -1490,16 +1603,23 @@ function readCollaterals(){
   return list;
 }
 
+// ─── กรุงเทพฯ ใช้ "แขวง/เขต" แทน "ตำบล/อำเภอ" และไม่มีคำว่า "จังหวัด" นำหน้า ───
+function _isBKK(prov){ return prov==='กรุงเทพมหานคร'; }
+function _subLabel(prov){ return _isBKK(prov)?'แขวง':'ตำบล'; }
+function _distLabel(prov){ return _isBKK(prov)?'เขต':'อำเภอ'; }
+function _provLabel(prov){ return _isBKK(prov)?'':'จังหวัด'; }
+
 function fmtCol(c){
   const lbl={land:'โฉนดที่ดิน',nsk:'น.ส.3 ก.',car:'รถยนต์',motorcycle:'รถจักรยานยนต์',gold:'ทองคำ/เครื่องประดับ',bank:'บัญชีเงินฝาก',other:'ทรัพย์สิน'}[c.type];
+  const nw=v=>'<span class="nowrap">'+(v||'..........')+'</span>';
   if(c.type==='land'||c.type==='nsk'){
-    let s=`${lbl} เลขที่ ${c.doc||'..........'} เลขที่ดิน ${c.land||'..........'} ตำบล ${c.tambon||'..........'} อำเภอ ${c.amphoe||'..........'} จังหวัด ${c.province||'..........'}`;
-    if(c.building)s+=' พร้อมสิ่งปลูกสร้างที่มีอยู่และเกิดขึ้นในอนาคต';
+    let s=`${lbl} เลขที่ ${nw(c.doc)} เลขที่ดิน ${nw(c.land)} <span class="nowrap">${_subLabel(c.province)}${c.tambon||'..........'}</span> <span class="nowrap">${_distLabel(c.province)}${c.amphoe||'..........'}</span> <span class="nowrap">${_provLabel(c.province)}${c.province||'..........'}</span>`;
+    if(c.building)s+=' พร้อมสิ่งปลูกสร้างที่มีอยู่และที่จะเกิดขึ้นในอนาคต';
     return s;
   }
-  if(c.type==='car'||c.type==='motorcycle')return `${lbl} ทะเบียน ${c.plate||'..........'} ยี่ห้อ ${c.brand||'..........'} รุ่น ${c.model||'..........'} สี ${c.color||'..........'} เลขตัวถัง ${c.chassis||'..........'} เลขเครื่อง ${c.engine||'..........'}`;
+  if(c.type==='car'||c.type==='motorcycle')return `${lbl} ทะเบียน ${nw(c.plate)} ยี่ห้อ ${nw(c.brand)} รุ่น ${nw(c.model)} สี ${nw(c.color)} เลขตัวถัง ${nw(c.chassis)} เลขเครื่อง ${nw(c.engine)}`;
   if(c.type==='gold')return `${lbl} ${c.items||'..........'}`;
-  if(c.type==='bank')return `${lbl} ธนาคาร ${c.bank||'..........'} เลขบัญชี ${c.acct||'..........'} ชื่อบัญชี ${c.aname||'..........'} ยอดเงิน ${c.balance||'..........'} บาท`;
+  if(c.type==='bank')return `${lbl} ธนาคาร ${nw(c.bank)} เลขบัญชี ${nw(c.acct)} ชื่อบัญชี ${nw(c.aname)} ยอดเงิน ${nw(c.balance)} บาท`;
   return c.detail||'..........';
 }
 
@@ -1512,9 +1632,13 @@ function fmtPersonList(list){
     return '<span class="nowrap">'+nm+'</span>'+idc;
   }).join(', ');
   const ages=list.map(p=>p.age||'..').join(', ');
-  const addrs=list.map(p=>'<span class="nowrap">'+(p.addr||'..........')+'</span>').join(', ');
-  const t=list[0].tambon||'..........',a=list[0].amphoe||'..........',pv=list[0].province||'..........';
-  return `${names} อายุ ${ages} ปี อยู่บ้านเลขที่ ${addrs} <span class="nowrap">ตำบล${t}</span> <span class="nowrap">อำเภอ${a}</span> <span class="nowrap">จังหวัด${pv}</span>`;
+  // ที่อยู่ของแต่ละคนแยกครบ (บ้านเลขที่ + ตำบล/อำเภอ/จังหวัด) กันข้อมูลของคนที่ 2 เป็นต้นไปหาย
+  const addrParts=list.map(function(p){
+    const houseNo=p.addr||'..........';
+    const t=p.tambon||'..........',a=p.amphoe||'..........',pv=p.province||'..........';
+    return '<span class="nowrap">'+houseNo+'</span> <span class="nowrap">'+_subLabel(p.province)+t+'</span> <span class="nowrap">'+_distLabel(p.province)+a+'</span> <span class="nowrap">'+_provLabel(p.province)+pv+'</span>';
+  }).join(', ');
+  return `${names} อายุ ${ages} ปี อยู่บ้านเลขที่ ${addrParts}`;
 }
 
 // ─── ตารางผ่อนชำระ ───
@@ -1581,9 +1705,9 @@ function calcSchedule(principal,annualRate,startDate,months,style){
     }
   }else{
     // Amortized — ผ่อนเท่ากันทุกงวด
-    const pmt=monthlyRate>0
+    const pmt=Math.ceil(monthlyRate>0
       ?principal*monthlyRate*Math.pow(1+monthlyRate,months)/(Math.pow(1+monthlyRate,months)-1)
-      :principal/months;
+      :principal/months);
     let balance=principal;
     for(let i=1;i<=months;i++){
       const date=addMonths(startDate,i);
@@ -1633,10 +1757,7 @@ function printSchedule(){
     if(name) borrowers.push(title+' '+name);
   });
   var borrowerText=borrowers.length?borrowers.join(', '):'(ยังไม่ได้กรอก)';
-  
-  var w=window.open('','_blank','width=900,height=1000');
-  if(!w){alert('โปรดอนุญาต popup เพื่อปริ้นตาราง');return;}
-  
+
   var css=`
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Sarabun','TH Sarabun New',Arial,sans-serif;padding:24px;color:#000;background:#fff}
@@ -1652,29 +1773,37 @@ function printSchedule(){
     .summary{padding:10pt 12pt;background:#fcf7eb;border:1px solid #e4cfa9;border-radius:6pt;font-size:11.5pt;line-height:1.7}
     .summary b{color:#0f2e21}
     .foot{text-align:center;margin-top:14pt;font-size:9pt;color:#888;font-style:italic}
-    @media print{
-      body{padding:8pt}
-      .no-print{display:none!important}
-      @page{size:A4;margin:0}
-    }
   `;
-  
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ตารางผ่อนชำระ</title><style>'+css+'</style></head><body>');
-  w.document.write('<h1>📋 ตารางผ่อนชำระเงินกู้</h1>');
-  w.document.write('<div class="meta">');
-  w.document.write('<div><b>ผู้ให้กู้:</b> '+lender+'</div>');
-  w.document.write('<div><b>ผู้กู้:</b> '+borrowerText+'</div>');
-  w.document.write('<div><b>เงินต้น:</b> '+(parseFloat(amount.replace(/,/g,''))||0).toLocaleString('th-TH')+' บาท · <b>ดอกเบี้ย:</b> '+rate+'% ต่อปี</div>');
+
+  var html='<style>'+css+'</style>';
+  html+='<h1>📋 ตารางผ่อนชำระเงินกู้</h1>';
+  html+='<div class="meta">';
+  html+='<div><b>ผู้ให้กู้:</b> '+lender+'</div>';
+  html+='<div><b>ผู้กู้:</b> '+borrowerText+'</div>';
+  html+='<div><b>เงินต้น:</b> '+(parseFloat(amount.replace(/,/g,''))||0).toLocaleString('th-TH')+' บาท · <b>ดอกเบี้ย:</b> '+rate+'% ต่อปี</div>';
   if(contractDate&&dueDate){
-    w.document.write('<div><b>วันทำสัญญา:</b> '+jsDateToShortBE(new Date(contractDate))+' · <b>วันครบกำหนด:</b> '+jsDateToShortBE(new Date(dueDate))+'</div>');
+    html+='<div><b>วันทำสัญญา:</b> '+jsDateToShortBE(new Date(contractDate))+' · <b>วันครบกำหนด:</b> '+jsDateToShortBE(new Date(dueDate))+'</div>';
   }
-  w.document.write('</div>');
-  w.document.write(tableEl.innerHTML.replace('<table class="schedule-table">','<table>').replace('class="schedule-table"',''));
-  if(sumEl) w.document.write(sumEl.outerHTML.replace('class="schedule-summary"','class="summary"'));
-  w.document.write('<div class="foot">เอกสารนี้ใช้ประกอบการพิจารณาเท่านั้น — ไม่ใช่หลักฐานทางกฎหมาย</div>');
-  w.document.write('</body></html>');
-  w.document.close();
-  setTimeout(function(){w.focus();w.print();},250);
+  html+='</div>';
+  html+=tableEl.innerHTML.replace('<table class="schedule-table">','<table>').replace('class="schedule-table"','');
+  if(sumEl) html+=sumEl.outerHTML.replace('class="schedule-summary"','class="summary"');
+  html+='<div class="foot">เอกสารนี้ใช้ประกอบการพิจารณาเท่านั้น — ไม่ใช่หลักฐานทางกฎหมาย</div>';
+
+  // พิมพ์ในหน้าเดิม (ไม่เปิดหน้าต่างใหม่) กันปัญหาเบราว์เซอร์มือถือ/แอปในตัวค้าง
+  var box=document.getElementById('gv-preview-schedule');
+  if(!box){alert('เกิดข้อผิดพลาด: ไม่พบพื้นที่แสดงตารางผ่อนชำระ');return;}
+  box.innerHTML=html;
+  document.body.classList.add('printing-schedule');
+  var _cleanup=function(){
+    document.body.classList.remove('printing-schedule');
+    box.innerHTML='';
+    window.removeEventListener('afterprint',_cleanup);
+  };
+  window.addEventListener('afterprint',_cleanup);
+  setTimeout(function(){
+    window.print();
+    setTimeout(_cleanup,4000);
+  },50);
 }
 
 function updateSchedule(){
@@ -1795,7 +1924,7 @@ function fitContentToA4(){
 
   // Binary search หา auto ratio
   var lo=0.3,hi=2.5;
-  for(var i=0;i<16;i++){
+  for(var i=0;i<11;i++){
     var mid=(lo+hi)/2;
     docEl.style.setProperty('--doc-fs',(_baseFs*mid).toFixed(3)+'pt');
     docEl.style.setProperty('--doc-h1',(_baseH1*mid).toFixed(3)+'pt');
@@ -1822,6 +1951,90 @@ function fitContentToA4(){
 }
 
 function printContract(){window.print();}
+
+// ─── แก้คำในเอกสารก่อนพิมพ์ ───
+function toggleEditText(){
+  var docEl=document.getElementById('doc-preview');
+  var btn=document.getElementById('editTextBtn');
+  if(!docEl) return;
+  var on=docEl.getAttribute('contenteditable')==='true';
+  if(on){
+    docEl.removeAttribute('contenteditable');
+    docEl.classList.remove('editing');
+    if(btn) btn.textContent='✏️ แก้คำ';
+  }else{
+    docEl.setAttribute('contenteditable','true');
+    docEl.classList.add('editing');
+    if(btn) btn.textContent='✅ เสร็จแล้ว';
+    docEl.focus();
+  }
+}
+
+// ─── ส่งออกเป็น Word (.doc) ───
+function exportWord(){
+  var docEl=document.getElementById('doc-preview');
+  if(!docEl || docEl.querySelector('.placeholder')){
+    alert('กรุณาสร้างเอกสารสัญญาก่อน');
+    return;
+  }
+  var borrowers=readPersons('b');
+  var fname='สัญญากู้เงิน_'+(borrowers[0]&&borrowers[0].name?borrowers[0].name.replace(/\s+/g,''):'เอกสาร')+'.doc';
+  var bodyHtml=docEl.innerHTML;
+  var css=`
+    body{font-family:'TH Sarabun New','Sarabun',Arial,sans-serif;font-size:16pt;line-height:1.5;color:#000;}
+    .fp-boxes{display:none}
+    .doc-h1{text-align:center;font-weight:bold;font-size:20pt;text-decoration:underline;margin-bottom:6pt}
+    .doc-meta{text-align:right;margin:2pt 0 8pt}
+    .doc-meta p{margin:1pt 0}
+    .doc-start,.doc-clause{text-indent:1cm;text-align:justify;margin-bottom:6pt}
+    .doc-clause b{font-weight:bold}
+    .doc-center{text-align:center;margin:10pt 0 6pt}
+    .doc-sigs{width:100%;margin-top:24pt}
+    .sig-col{display:inline-block;width:48%;vertical-align:top}
+    .sig-cell{text-align:center;margin-bottom:26pt}
+    .sig-line{border-bottom:1px solid #000;width:80%;margin:0 auto 4pt;height:1.6em}
+    .sig-name,.sig-role,.sig-sub{text-align:center}
+    .nowrap{white-space:nowrap}
+  `;
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    +'<head><meta charset="UTF-8"><title>สัญญากู้เงิน</title>'
+    +'<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->'
+    +'<style>@page{size:21cm 29.7cm;margin:2cm 2cm 2cm 3cm}'+css+'</style></head>'
+    +'<body>'+bodyHtml+'</body></html>';
+  var blob=new Blob(['\ufeff'+html],{type:'application/msword'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=fname;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+}
+
+// ─── ตัดคำไทยให้ถูกจุด (กันคำขาดตอนขึ้นบรรทัดใหม่/พิมพ์) ───
+// ใช้ Intl.Segmenter (ถ้ามี) หาขอบเขตคำจริง แล้วแทรก zero-width space
+// ระหว่างคำ — ใช้คู่กับ CSS word-break:keep-all เพื่อให้เบราว์เซอร์ตัดบรรทัด
+// เฉพาะจุดที่เป็นขอบเขตคำจริงเท่านั้น ไม่ตัดกลางคำ
+var _thSeg=null;
+try{ if(typeof Intl!=='undefined' && Intl.Segmenter) _thSeg=new Intl.Segmenter('th',{granularity:'word'}); }catch(e){_thSeg=null;}
+function thaiSoftWrap(str){
+  if(!str||!_thSeg) return str;
+  try{
+    var out='';
+    for(const s of _thSeg.segment(str)) out+=s.segment+'\u200B';
+    return out;
+  }catch(e){ return str; }
+}
+function applyThaiWrap(root){
+  if(!root||!_thSeg) return;
+  try{
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+    var nodes=[];
+    var n;
+    while((n=walker.nextNode())) nodes.push(n);
+    nodes.forEach(function(tn){
+      if(tn.nodeValue && tn.nodeValue.trim()) tn.nodeValue=thaiSoftWrap(tn.nodeValue);
+    });
+  }catch(e){}
+}
 
 function calcDocSizes(total,extraLines){
   var weight=total+(extraLines||0)*0.5;
@@ -1868,11 +2081,11 @@ function generateContract(){
   for(let i=0;i<5;i++)html+='<div class="fp-box"></div>';
   html+='</div>';
 
-  html+='<div class="doc-h1">หนังสือสัญญากู้เงินตามกฎหมาย</div>';
+  html+='<div style="display:flex;align-items:center;gap:8pt;margin:-0.7cm 0 6pt -2.7cm"><img src="'+LOGO3C+'" style="width:46px;height:46px;object-fit:contain;flex-shrink:0" alt="logo"><div style="line-height:1.25;text-align:left"><div style="font-size:15pt;font-weight:bold">บริษัท ทริปเปิลซี พิโก จำกัด</div><div style="font-size:12pt">เลขประจำตัวผู้เสียภาษี 0-3055-61006-24-7</div></div></div>';html+='<div class="doc-h1">หนังสือสัญญากู้เงินตามกฎหมาย</div>';
   html+=`<div class="doc-meta"><p>ทำที่ ${place}</p><p>วันที่ ${dp.d} เดือน ${dp.m} พ.ศ. ${dp.y}</p></div>`;
 
   const bText=fmtPersonList(borrowers);
-  html+=`<div class="doc-start">ข้าพเจ้า ${bText} ได้ทำหนังสือสัญญากู้เงินให้ไว้แก่ ${lender} ในฐานะผู้ให้กู้ มีข้อสัญญาดังต่อไปนี้</div>`;
+  html+=`<div class="doc-start">ข้าพเจ้า ${bText} ได้ทำหนังสือสัญญากู้เงินให้ไว้แก่ <span class="nowrap">${lender}</span> ในฐานะผู้ให้กู้ มีข้อสัญญาดังต่อไปนี้</div>`;
 
   if(guarantors.length>0){
     const gText=fmtPersonList(guarantors);
@@ -1901,7 +2114,7 @@ function generateContract(){
     const display=(fullName||'').trim()||'..............................................';
     let r=`<div class="sig-cell">
       <div class="sig-line"></div>
-      <div class="sig-name">( ${display} )</div>
+      <div class="sig-name">( <span class="nowrap">${display}</span> )</div>
       <div class="sig-role">${role}</div>`;
     if(sub)r+=`<div class="sig-sub">${sub}</div>`;
     r+='</div>';
@@ -1922,6 +2135,7 @@ function generateContract(){
   html+=`<div class="doc-sigs"><div class="sig-col">${leftCol}</div><div class="sig-col">${rightCol}</div></div>`;
 
   document.getElementById('doc-preview').innerHTML=html;
+  applyThaiWrap(document.getElementById('doc-preview'));
   document.getElementById('sec-form').classList.remove('active');
   document.getElementById('sec-preview').classList.add('active');
   window.scrollTo(0,0);
@@ -1934,14 +2148,17 @@ function backToForm(){
   window.scrollTo(0,0);
 }
 
+var _skipAutoSave=false;
 function resetAll(){
   if(!confirm('ล้างข้อมูลทั้งหมดและเริ่มใหม่?'))return;
+  _skipAutoSave=true;
   localStorage.removeItem('3C_loanContractData');
   location.reload();
 }
 
 // ─── Auto-save / Restore ───
 function autoSave(){
+  if(_skipAutoSave) return;
   const data={fields:{},bC,gC,cC,colTypes:{}};
   // เก็บเฉพาะ visible inputs (tdpi_* และ field อื่น) + hidden TDP
   document.querySelectorAll('input[id],select[id],textarea[id]').forEach(e=>{
@@ -1958,7 +2175,7 @@ function autoSave(){
 
 function autoRestore(){
   const raw=localStorage.getItem('3C_loanContractData');
-  if(!raw){addBorrower();return}
+  if(!raw){return}
   try{
     const data=JSON.parse(raw);
     bC=data.bC||0;gC=data.gC||0;cC=data.cC||0;
@@ -1977,8 +2194,9 @@ function autoRestore(){
         const e=document.getElementById(id);
         if(e){if(e.type==='checkbox')e.checked=val;else e.value=val}
       });
-      document.getElementById('guarantor_wrap').style.display=gc('has_guarantor')?'':'none';
-      document.getElementById('collateral_wrap').style.display=gc('has_collateral')?'':'none';
+      document.getElementById('guarantor_wrap').style.display='';
+      document.getElementById('collateral_wrap').style.display='';
+      syncAllChips();
       // wire wires
       for(let i=1;i<=bC;i++){wirePerson('b',i);
         // คำนวณอายุ
@@ -1990,21 +2208,332 @@ function autoRestore(){
       for(let i=1;i<=cC;i++)wireColAddr(i);
       try{tdpInit('contract_date',function(){autoFillDue();updateSchedule();});_tdpWireEvents('contract_date');}catch(e){}
       try{tdpInit('due_date',function(){updateSchedule();});_tdpWireEvents('due_date');}catch(e){}
-      if(bC===0)addBorrower();
       setTimeout(updateSchedule,80);
     },120);
-  }catch(e){if(bC===0)addBorrower()}
+  }catch(e){}
 }
 
 window.addEventListener('DOMContentLoaded',function(){
   autoRestore();
+  syncAllChips();
+  // เอา animation ออกหลังเล่นจบ เพราะ animation ที่ยังผูกกับ transform/opacity
+  // ทำให้การ์ดกลายเป็น stacking context ถาวร ทำให้ปฏิทินที่เปิดในการ์ดหนึ่ง
+  // โผล่ไปอยู่ "หลัง" การ์ดถัดไปแทนที่จะลอยทับด้านบนตามที่ตั้งใจ (z-index ถูกขังอยู่ในการ์ด)
+  setTimeout(function(){
+    document.querySelectorAll('.card').forEach(function(c){c.style.animation='none'});
+  },700);
   setTimeout(()=>{
     try{tdpInit('contract_date',function(){autoFillDue();updateSchedule();});_tdpWireEvents('contract_date');}catch(e){}
     try{tdpInit('due_date',function(){updateSchedule();});_tdpWireEvents('due_date');}catch(e){}
   },250);
 });
-setInterval(autoSave,2500);
+// บันทึกอัตโนมัติแบบ debounce (แทน setInterval ทุก 2.5 วิ ที่สแกนทั้งฟอร์มตลอดเวลา
+// แม้ผู้ใช้ไม่ได้พิมพ์อะไร — ลดภาระ CPU/localStorage ที่อาจทำให้เครื่องรุ่นเก่าหน่วง)
+var _autoSaveTimer=null;
+function scheduleAutoSave(){
+  if(_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=setTimeout(autoSave,1200);
+}
+document.addEventListener('input',scheduleAutoSave,true);
+document.addEventListener('change',scheduleAutoSave,true);
 window.addEventListener('beforeunload',autoSave);
+</script>
+
+<!-- voucher preview hidden div -->
+<div id="gv-preview-loan" style="display:none"></div>
+<div id="gv-preview-schedule" style="display:none"></div>
+
+<script>
+// ─── ฟังก์ชันช่วยเหลือสำหรับใบสำคัญจ่าย ───
+function _vToBaht(n){
+  n=parseInt(String(n).replace(/[,\s]/g,''));
+  if(isNaN(n)||n===0)return '';
+  var u=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  var p=['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];
+  function toText(n){
+    if(n===0)return '';
+    if(n>=1000000)return toText(Math.floor(n/1000000))+'ล้าน'+toText(n%1000000);
+    var r='',d=String(n).split('');
+    d.reverse();
+    for(var i=0;i<d.length;i++){
+      if(d[i]==='0')continue;
+      r=u[parseInt(d[i])]+p[i]+r;
+      if(i===1&&d[i]==='1')r='สิบ'+r.slice(2);
+      if(i===1&&d[i]==='2')r='ยี่สิบ'+r.slice(4);
+    }
+    return r;
+  }
+  return toText(n)+'บาทถ้วน';
+}
+
+function _vShortDate(dateStr){
+  if(!dateStr)return '......';
+  var d=0,mIdx=0,y=0;
+  if(dateStr.indexOf('/')>-1){
+    // DD/MM/YYYY (BE)
+    var p=dateStr.split('/');
+    if(p.length!==3)return dateStr;
+    d=parseInt(p[0]); mIdx=parseInt(p[1])-1; y=parseInt(p[2]);
+  } else if(dateStr.indexOf('-')>-1){
+    // YYYY-MM-DD (ISO/CE)
+    var p=dateStr.split('-');
+    if(p.length!==3)return dateStr;
+    d=parseInt(p[2]); mIdx=parseInt(p[1])-1; y=parseInt(p[0])+543;
+  } else return dateStr;
+  var months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return d+'/'+months[mIdx]+'/'+y;
+}
+
+var LOGO3C="data:image/png;base64,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";
+function _vPayerLetter(name){
+  if(!name) return 'PV';
+  if(String(name).indexOf('ทริปเปิลซี')>-1) return 'PV';
+  var n=String(name).replace(/^(นางสาว|นาย|นาง)\s*/,'').replace(/\s+/g,'');
+  if(n.indexOf('กันต')===0) return 'K';
+  if(n.indexOf('ชญา')===0) return 'C';
+  if(n.indexOf('ชุณ')===0) return 'H';
+  if(n.indexOf('ฐาน')===0) return 'T';
+  if(n.indexOf('ภัค')===0) return 'J';
+  return 'X';
+}
+
+function _vBillNo(dateStr,seq,payerName){
+  var letter=_vPayerLetter(payerName);
+  if(!dateStr)return letter+'......-'+(seq||'01');
+  // รับได้ทั้ง 2 รูปแบบ
+  var dd='00',mm='00',yy='00';
+  if(dateStr.indexOf('/')>-1){
+    // DD/MM/YYYY (BE) — จาก getTDPVal
+    var p=dateStr.split('/');
+    if(p.length===3){
+      dd=p[0].padStart(2,'0');
+      mm=p[1].padStart(2,'0');
+      yy=String(parseInt(p[2])).slice(-2);
+    }
+  } else if(dateStr.indexOf('-')>-1){
+    // YYYY-MM-DD (ISO/CE)
+    var p=dateStr.split('-');
+    if(p.length===3){
+      yy=String(parseInt(p[0])+543).slice(-2);
+      mm=p[1].padStart(2,'0');
+      dd=p[2].padStart(2,'0');
+    }
+  }
+  return letter+yy+mm+dd+'-'+(seq||'01');
+}
+
+var _LOAN_PAY_PLACEHOLDERS={
+  "cash":"(ไม่ต้องระบุ)",
+  "transfer":"ธนาคาร / เลขบัญชี / วันที่โอน",
+  "check":"ธนาคาร / เลขที่เช็ค / วันที่เช็ค",
+  "draft":"เลขที่ดราฟท์ / ธนาคาร / วันที่",
+  "bankdraft":"ธนาคาร / เลขที่ดราฟต์ / วันที่",
+  "pn":"เลขที่ / วันที่ออกตั๋ว / วันครบกำหนด"
+};
+
+var _loanPayCounter=0;
+
+function addLoanPay(){
+  _loanPayCounter++;
+  var i=_loanPayCounter;
+  var wrap=document.getElementById('loan_pay_rows');
+  if(!wrap)return;
+  // ครั้งแรก: prefill จำนวนเงินจากยอดเงินกู้
+  var defaultAmt='';
+  if(wrap.children.length===0){
+    var amtRaw=(gv('amount')||'').replace(/,/g,'');
+    if(amtRaw)defaultAmt=parseInt(amtRaw).toLocaleString('en-US');
+  }
+  var div=document.createElement('div');
+  div.id='lpay-'+i;
+  div.className='loan-pay-row';
+  div.innerHTML=
+    '<div class="lp-head">'
+    +'<select id="lp_type_'+i+'" onchange="onLoanPayTypeChange('+i+')">'
+    +'<option value="cash">เงินสด</option>'
+    +'<option value="transfer">เงินโอน</option>'
+    +'<option value="check">เช็ค</option>'
+    +'<option value="draft">ดราฟท์</option>'
+    +'<option value="bankdraft">ดราฟต์ธนาคาร</option>'
+    +'<option value="pn">ตั๋วสัญญาใช้เงิน</option>'
+    +'</select>'
+    +'<input type="text" id="lp_amt_'+i+'" placeholder="จำนวนเงิน" value="'+defaultAmt+'" oninput="onLoanPayAmtInput('+i+')">'
+    +'<button type="button" onclick="removeLoanPay('+i+')">× ลบ</button>'
+    +'</div>'
+    +'<input type="text" id="lp_detail_'+i+'" class="lp-detail hidden" placeholder="(ไม่ต้องระบุ)">';
+  wrap.appendChild(div);
+  onLoanPayTypeChange(i);
+}
+
+function removeLoanPay(i){
+  var el=document.getElementById('lpay-'+i);
+  if(el)el.remove();
+}
+
+function onLoanPayTypeChange(i){
+  var sel=document.getElementById('lp_type_'+i);
+  var det=document.getElementById('lp_detail_'+i);
+  if(!sel||!det)return;
+  var t=sel.value;
+  var ph=_LOAN_PAY_PLACEHOLDERS[t]||'';
+  det.placeholder=ph;
+  // ซ่อนช่องรายละเอียดถ้าเป็นเงินสด
+  if(t==='cash'){det.classList.add('hidden');det.value='';}
+  else det.classList.remove('hidden');
+}
+
+function onLoanPayAmtInput(i){
+  // format ตัวเลขด้วย comma
+  var inp=document.getElementById('lp_amt_'+i);
+  if(!inp)return;
+  var raw=inp.value.replace(/[^\d]/g,'');
+  if(!raw){inp.value='';return;}
+  inp.value=parseInt(raw).toLocaleString('en-US');
+}
+
+function getLoanPayRows(){
+  var rows=[];
+  document.querySelectorAll('#loan_pay_rows .loan-pay-row').forEach(function(el){
+    var i=el.id.split('-')[1];
+    var t=gv('lp_type_'+i)||'cash';
+    var amtRaw=(gv('lp_amt_'+i)||'').replace(/,/g,'');
+    var amt=parseInt(amtRaw)||0;
+    var detail=gv('lp_detail_'+i)||'';
+    if(amt>0)rows.push({type:t, label:PAY_TYPE_LABELS[t]||'เงินสด', amt:amt, detail:detail});
+  });
+  return rows;
+}
+
+function printVoucher(){
+  // ดึงข้อมูลจากสัญญา
+  var lenderName=gv('lender_dir')||'';
+  var lenderDisp=lenderName.replace(/\s*โดย[\s\S]*$/,'');
+  if(!lenderName){alert('กรุณาเลือกผู้ให้กู้ในสัญญาก่อน');return;}
+  var lenderAddr=LENDER_PEOPLE[lenderName]||'';
+  var lenderID=LENDER_IDS[lenderName]||'';
+
+  var borrowers=readPersons('b');
+  if(borrowers.length===0){alert('กรุณากรอกข้อมูลผู้กู้ก่อน');return;}
+
+  var recvNames=borrowers.map(function(b){
+    return (b.title||'')+' '+(b.name||'..........');
+  }).join(', ');
+
+  // ที่อยู่ของผู้กู้ทุกคน — คั่นด้วยจุลภาค (ที่อยู่1, ที่อยู่2, ...)
+  var recvAddrHTML=borrowers.map(function(b){
+    var a=(b.addr||'..........');
+    if(b.tambon)a+=' '+_subLabel(b.province)+b.tambon;
+    if(b.amphoe)a+=' '+_distLabel(b.province)+b.amphoe;
+    if(b.province)a+=' '+_provLabel(b.province)+b.province;
+    return a;
+  }).join(', ');
+
+  // ลายเซ็นผู้รับเงิน — ให้อยู่แถวเดียวกับผู้จ่ายเงิน (คนละคอลัมน์ แต่ระนาบเดียวกัน)
+  var _sigFont=borrowers.length>=4?'10.5pt':(borrowers.length===3?'11.5pt':'12.5pt');
+  var recvSigHTML=borrowers.map(function(b){
+    var nm=(b.title||'')+' '+(b.name||'..........');
+    return '<td style="width:'+(100/(borrowers.length+1))+'%;text-align:center;vertical-align:bottom;padding:0 4px 2mm">'
+      +'<div style="border-top:1px solid #000;width:120px;margin:0 auto 2pt"></div>'
+      +'<div style="font-size:'+_sigFont+';font-weight:600;line-height:1.1">ผู้รับเงิน</div>'
+      +'<div style="font-size:'+_sigFont+';line-height:1.1;margin-top:0pt">( <span class="nowrap">'+nm+'</span> )</div>'
+      +'</td>';
+  }).join('');
+
+  var payRows=getLoanPayRows();
+  if(payRows.length===0){alert('กรุณาเพิ่มอย่างน้อย 1 วิธีจ่ายและกรอกจำนวนเงิน');return;}
+
+  var totalAmt=0;
+  payRows.forEach(function(r){totalAmt+=r.amt;});
+
+  var dateISO=getTDPVal('contract_date');
+  var seq=gv('gv_bill_seq')||'01';
+  var no=_vBillNo(dateISO,seq,lenderName);
+
+  var CELL='padding:5pt 7pt;font-size:14pt;';
+
+  function copy(lbl){
+    // แถวรายการจ่าย — แต่ละบรรทัดเป็นวิธีจ่าย 1 แบบ
+    var rowsHTML='';
+    payRows.forEach(function(r){
+      var labelCell='ค่ากู้ยืมเงินตามสัญญา ('+r.label+')';
+      if(r.detail){
+        labelCell+='<div style="font-size:11pt;color:#555;margin-top:1pt;font-style:italic;word-break:break-word;line-height:1.2">'+r.detail+'</div>';
+      }
+      rowsHTML+='<tr>'
+        +'<td style="border:1px solid #999;'+CELL+'vertical-align:top">'+labelCell+'</td>'
+        +'<td style="border:1px solid #999;'+CELL+'text-align:right;white-space:nowrap;width:28%;vertical-align:top">'+r.amt.toLocaleString('th-TH')+'</td>'
+        +'</tr>';
+    });
+    // pad rows
+    var pad=Math.max(0,3-payRows.length);
+    while(pad-->0){rowsHTML+='<tr><td style="border:1px solid #999;'+CELL+'height:0.8cm"></td><td style="border:1px solid #999;'+CELL+'"></td></tr>';}
+
+    return '<div style="flex:1;min-height:0;padding:3mm 5mm;font-family:TH Sarabun New,Sarabun,Arial,sans-serif;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden">'
+      +'<div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:6pt"><tr>'
+      +'<td style="vertical-align:top">'
+      +'<div style="display:flex;align-items:center;gap:8pt">'+'<img src="'+LOGO3C+'" style="width:52px;height:52px;object-fit:contain;flex-shrink:0" alt="logo">'+'<div style="font-size:22pt;font-weight:bold;line-height:1.1;color:#000">'+lenderDisp+'</div>'+'</div>'
+      +(lenderAddr?'<div style="font-size:13pt;line-height:1.35;margin-top:2pt">'+lenderAddr+'</div>':'')
+      +(lenderID?'<div style="font-size:12pt;line-height:1.3;margin-top:1pt">เลขประจำตัวผู้เสียภาษี '+lenderID+'</div>':'')
+      +'</td>'
+      +'<td style="text-align:right;vertical-align:top;white-space:nowrap;width:38%">'
+      +'<div style="font-size:20pt;font-weight:bold;color:#c00;letter-spacing:.5pt">ใบสำคัญจ่าย</div>'
+      +'<div style="font-size:13pt;margin-top:3pt">No. '+no+'</div>'
+      +'<div style="font-size:13pt;margin-top:1pt">'+lbl+'</div>'
+      +'<div style="font-size:13pt;margin-top:1pt">วันที่ '+_vShortDate(dateISO)+'</div>'
+      +'</td></tr></table>'
+      +'<div style="border-top:1.5pt solid #000;margin-bottom:8pt"></div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:6pt">'
+      +'<tr><td style="border:1px solid #999;border-bottom:none;'+CELL+'font-weight:bold;width:25%">ชื่อ-นามสกุล ผู้รับเงิน</td>'
+      +'<td style="border:1px solid #999;border-left:none;border-bottom:none;'+CELL+'">'+recvNames+'</td></tr>'
+      +'<tr><td style="border:1px solid #999;border-top:none;'+CELL+'font-weight:bold">ที่อยู่</td>'
+      +'<td style="border:1px solid #999;border-left:none;border-top:none;'+CELL+'word-break:break-word">'+recvAddrHTML+'</td></tr>'
+      +'</table>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:4pt">'
+      +'<tr style="background:#e8efe9"><th style="border:1px solid #999;'+CELL+'text-align:center">รายละเอียดการจ่ายเงิน</th>'
+      +'<th style="border:1px solid #999;'+CELL+'text-align:center;width:28%">จำนวนเงิน (บาท)</th></tr>'
+      +rowsHTML
+      +'<tr style="background:#d4e1d6;font-weight:bold">'
+      +'<td style="border:1px solid #999;'+CELL+'">รวมเงินที่จ่าย &nbsp; '+_vToBaht(totalAmt)+'</td>'
+      +'<td style="border:1px solid #999;'+CELL+'text-align:right">'+totalAmt.toLocaleString('th-TH')+'</td>'
+      +'</tr></table>'
+      +'</div>'
+      +'<div>'
+      +'<table style="width:100%;border-collapse:collapse"><tr>'
+      +'<td style="width:'+(100/(borrowers.length+1))+'%;text-align:center;vertical-align:bottom;padding:0 4px 2mm">'
+      +'<div style="border-top:1px solid #000;width:120px;margin:0 auto 2pt"></div>'
+      +'<div style="font-size:'+_sigFont+';font-weight:600;line-height:1.1">ผู้จ่ายเงิน</div>'
+      +'<div style="font-size:'+_sigFont+';line-height:1.1;margin-top:0pt">( <span class="nowrap">'+lenderName+'</span> )</div></td>'
+      +recvSigHTML
+      +'</tr></table>'
+      +'</div>'
+      +'</div>';
+  }
+
+  var html='<div style="height:100vh;display:flex;flex-direction:column;box-sizing:border-box;background:#fff">'
+    +copy('ต้นฉบับ')
+    +'<hr style="border:none;border-top:2px dashed #aaa;margin:0;flex-shrink:0">'
+    +copy('สำเนา')
+    +'</div>';
+
+  // พิมพ์ในหน้าเดิม (ไม่เปิดหน้าต่างใหม่) กันปัญหาเบราว์เซอร์มือถือ/แอปในตัวค้าง
+  // ตอนพยายามย้อนกลับมาแก้ไขข้อมูลหลังพิมพ์เสร็จ
+  var box=document.getElementById('gv-preview-loan');
+  if(!box){alert('เกิดข้อผิดพลาด: ไม่พบพื้นที่แสดงใบสำคัญจ่าย');return;}
+  box.innerHTML=html;
+  document.body.classList.add('printing-voucher');
+  var _cleanup=function(){
+    document.body.classList.remove('printing-voucher');
+    box.innerHTML='';
+    window.removeEventListener('afterprint',_cleanup);
+  };
+  window.addEventListener('afterprint',_cleanup);
+  setTimeout(function(){
+    window.print();
+    // เผื่อเบราว์เซอร์ไม่ยิง afterprint (บางเบราว์เซอร์มือถือ/เว็บวิวไม่รองรับ)
+    setTimeout(_cleanup,4000);
+  },50);
+}
 </script>
 </body>
 </html>
