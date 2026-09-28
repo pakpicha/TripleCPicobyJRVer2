@@ -545,9 +545,9 @@ function fz(dir){
 function setDirDefaults(){
   var d1='นาย ชุณนเกียรติ จรัสบวรพันธ์';   /* ชญา */
   var d2='นางสาว ภัคฐ์พิชา จรัสบวรพันธ์';  /* ชุณ */
-  var d3=''; /* ภัค */
+  var d3='นาง ชญาน์นัทช์ จรัสบวรพันธ์';
   function sv(id,v){var e=$(id);if(e){e.value=v;}}
-  sv('i_dircount','2');
+  sv('i_dircount','3');
   sv('i_dir1',d1);sv('i_dir2',d2);sv('i_dir3',d3);sv('i_dir4','');
   sv('i_declarant',d2);
 }
@@ -642,6 +642,7 @@ function init(){
   try{hasState=!!localStorage.getItem(ST_KEY);}catch(e){}
   if(!hasState){setDirDefaults();}
   loadState();
+  try{if(!localStorage.getItem('3C_tordor16_dirs3')){setDirDefaults();localStorage.setItem('3C_tordor16_dirs3','1');}}catch(e){}
   importFromKhaifak();
   try{var f=localStorage.getItem(FZ_KEY);if(f){fzMul=parseFloat(f)||1;}}catch(e){}
   applyFz();
